@@ -71,51 +71,57 @@ public_users.get('/review/:isbn', function (req, res) {
 
 const BASE_URL = "http://localhost:5000";
 
-// Tarea 10: obtener todos los libros con async/await + Axios
-const getAllBooks = async () => {
+// Tarea 10: todos los libros con async/await + Axios
+public_users.get('/axios/books', async (req, res) => {
   try {
     const response = await axios.get(`${BASE_URL}/`);
-    console.log(JSON.stringify(response.data, null, 4));
-    return response.data;
+    if (!response.data || Object.keys(response.data).length === 0) {
+      return res.status(404).json({ message: "No se encontraron libros" });
+    }
+    return res.status(200).json(response.data);
   } catch (error) {
-    console.error("Error al obtener los libros:", error.message);
+    return res.status(500).json({ message: "Error al obtener los libros", error: error.message });
   }
-};
+});
 
-// Tarea 11: obtener libro por ISBN con Promises + Axios
-const getBookByISBN = (isbn) => {
-  return axios.get(`${BASE_URL}/isbn/${isbn}`)
-    .then((response) => {
-      console.log(JSON.stringify(response.data, null, 4));
-      return response.data;
-    })
-    .catch((error) => console.error("Error al buscar por ISBN:", error.message));
-};
+// Tarea 11: libro por ISBN con Promises + Axios
+public_users.get('/axios/isbn/:isbn', (req, res) => {
+  const isbn = req.params.isbn;
+  axios.get(`${BASE_URL}/isbn/${isbn}`)
+    .then((response) => res.status(200).json(response.data))
+    .catch((error) => {
+      if (error.response && error.response.status === 404) {
+        return res.status(404).json({ message: "Libro no encontrado" });
+      }
+      return res.status(500).json({ message: "Error al buscar por ISBN", error: error.message });
+    });
+});
 
-// Tarea 12: obtener libros por autor con async/await + Axios
-const getBooksByAuthor = async (author) => {
+// Tarea 12: libros por autor con async/await + Axios
+public_users.get('/axios/author/:author', async (req, res) => {
   try {
+    const author = req.params.author;
     const response = await axios.get(`${BASE_URL}/author/${encodeURIComponent(author)}`);
-    console.log(JSON.stringify(response.data, null, 4));
-    return response.data;
+    return res.status(200).json(response.data);
   } catch (error) {
-    console.error("Error al buscar por autor:", error.message);
+    if (error.response && error.response.status === 404) {
+      return res.status(404).json({ message: "No se encontraron libros de ese autor" });
+    }
+    return res.status(500).json({ message: "Error al buscar por autor", error: error.message });
   }
-};
+});
 
-// Tarea 13: obtener libros por título con async/await + Axios
-const getBooksByTitle = async (title) => {
+// Tarea 13: libros por título con async/await + Axios
+public_users.get('/axios/title/:title', async (req, res) => {
   try {
+    const title = req.params.title;
     const response = await axios.get(`${BASE_URL}/title/${encodeURIComponent(title)}`);
-    console.log(JSON.stringify(response.data, null, 4));
-    return response.data;
+    return res.status(200).json(response.data);
   } catch (error) {
-    console.error("Error al buscar por título:", error.message);
+    if (error.response && error.response.status === 404) {
+      return res.status(404).json({ message: "No se encontraron libros con ese título" });
+    }
+    return res.status(500).json({ message: "Error al buscar por título", error: error.message });
   }
-};
-
-module.exports.getAllBooks = getAllBooks;
-module.exports.getBookByISBN = getBookByISBN;
-module.exports.getBooksByAuthor = getBooksByAuthor;
-module.exports.getBooksByTitle = getBooksByTitle;
+});
 module.exports.general = public_users;
